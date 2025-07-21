@@ -4,6 +4,7 @@ import { Query, ID } from "node-appwrite";
 import { createAdminClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
 import { parseStringify } from "../utils";
+import { cookies } from "next/headers";
 
 // We are trying to get the user by email
 const getUserByEmail = async (email: string) => {
@@ -47,23 +48,50 @@ export const createAccount = async ({
 
   const accountId = await sendEmailOTP({ email });
 
-  if(!accountId) throw new Error("Failed to send an OTP verification");
+  if (!accountId) throw new Error("Failed to send an OTP verification");
 
-  if(!existingUser) {
+  if (!existingUser) {
     const { databases } = await createAdminClient();
-    
+
     await databases.createDocument(
-        appwriteConfig.databaseId, // In which database it should be created
-        appwriteConfig.usersCollectionId, // In which collection it should be created
-        ID.unique(), // Adds an unique ID
-        {
-            fullName,
-            email,
-            avatar: "https://e7.pngegg.com/pngimages/799/987/png-clipart-computer-icons-avatar-icon-design-avatar-heroes-computer-wallpaper-thumbnail.png",
-            accountId,
-        },
+      appwriteConfig.databaseId, // In which database it should be created
+      appwriteConfig.usersCollectionId, // In which collection it should be created
+      ID.unique(), // Adds an unique ID
+      {
+        fullName,
+        email,
+        avatar:
+          "https://e7.pngegg.com/pngimages/799/987/png-clipart-computer-icons-avatar-icon-design-avatar-heroes-computer-wallpaper-thumbnail.png",
+        accountId,
+      }
     );
   }
 
-  return parseStringify({accountId});
+  return parseStringify({ accountId });
+};
+
+export const verifySecret = async ({
+  accountId,
+  password,
+}: {
+  accountId: string;
+  password: string;
+}) => {
+  try {
+    const { account } = await createAdminClient();
+
+    const session = await account.createSession(accountId, password);
+
+    (await cookies()).set("appwrite-session", session.secret, {
+      path:"/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure:true,
+    });
+
+    return parseStringify({sessionId: session.$id})
+
+  } catch (error) {
+    handleError(error, "Failed to verify OTP");
+  }
 };

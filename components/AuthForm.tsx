@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createAccount } from "@/lib/actions/user.actions";
+import OtpModal from "./OTPModal";
 
 type FormType = "sign-in" | "sign-up";
 
@@ -34,7 +35,7 @@ const authFormSchema = (formType: FormType) => {
 const AuthForm = ({ type }: { type: FormType }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [accountId, setAccountId] = useState(null)
+  const [accountId, setAccountId] = useState(null);
 
   const formSchema = authFormSchema(type);
 
@@ -52,14 +53,13 @@ const AuthForm = ({ type }: { type: FormType }) => {
 
     try {
       const user = await createAccount({
-      fullName: values.fullName || "",
-      email: values.email,
-    });
+        fullName: values.fullName || "",
+        email: values.email,
+      });
 
-    setAccountId(user.accountId);
-
-    } catch(error) {
-      setErrorMessage("Failed to create an account. Please try again.")
+      setAccountId(user.accountId);
+    } catch (error) {
+      setErrorMessage("Failed to create an account. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -153,7 +153,10 @@ const AuthForm = ({ type }: { type: FormType }) => {
           </div>
         </form>
       </Form>
-      {/* OTP AUTH */}
+      {/* OTP Verification */}
+      {accountId && (
+        <OtpModal email={form.getValues("email")} accountId={accountId} />
+      )}
     </>
   );
 };
