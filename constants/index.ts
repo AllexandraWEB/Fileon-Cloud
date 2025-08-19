@@ -81,4 +81,6 @@ export const sortTypes = [
   },
 ];
 
+export const avatarPlaceholderUrl = "https://e7.pngegg.com/pngimages/799/987/png-clipart-computer-icons-avatar-icon-design-avatar-heroes-computer-wallpaper-thumbnail.png";
+
 export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
